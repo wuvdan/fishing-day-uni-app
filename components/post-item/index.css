@@ -1,0 +1,14 @@
+.post-item-header-box {
+	display: flex;
+	align-items: center;
+	color: #666666;
+	font-size: 30rpx;
+	font-weight: 400;
+}
+
+.post-item-header-image {
+	height: 60rpx;
+	width: 60rpx;
+	border-radius: 30rpx;
+	margin-right: 20rpx;
+}

@@ -1,0 +1,545 @@
+<template>
+	<view class="sliderVideo">
+		<scroller @loadmore="loadMore()" :loadmoreoffset="wHeight*2" :show-scrollbar="false" ref="listBox"
+			:pagingEnabled="true" :scrollable="true"  :offset-accuracy="wHeight" @scrollend="videoScroll" :style="boxStyle">
+			<view v-for="(item,i) in dataList" :key="i" :style="boxStyle">
+				<view ref="item" class="item"  :style="boxStyle">
+
+					<jxSliderVideo
+						v-if="curr_video_index==i"
+						:state="item.state"
+						:src="item.video"
+						:boxStyle="boxStyle">
+					</jxSliderVideo>
+					<!-- 封面图 -->
+					<view class="poster_box" v-if="item.is_poster" :style="boxStyle">
+						<image class="poster_box_img" :style="boxStyle" :src="item.poster" mode="aspectFill"></image>
+					</view>
+					<!-- 视频播放或者暂停 按钮 -->
+					<view class="videoHover" @click="tapVideoHover(item.state)" :style="boxStyle">
+					  	<image v-if="item.state=='pause'" class="playState" src=""></image>
+					</view>
+
+					<view class="item_right">
+						<view class="item_right_box">
+							<image class="item_avatar_img" :src="item.avatar" mode="aspectFill"></image>
+						</view>
+						<view class="item_right_box" @click="zan(item)">
+							<image class="item_zan_img" v-if="item.is_thumb" src="" mode=""></image>
+							<image class="item_zan_img" v-else src="" mode="aspectFill"></image>
+							<text class="item_zan_text">{{item.thumb_num}}</text>
+						</view>
+						<view class="item_right_box" @click="openComment">
+							<image class="item_comment_img" src="" mode="aspectFill"></image>
+							<text class="item_comment_text">{{item.comment_num}}</text>
+						</view>
+					</view>
+
+					<view class="item_bottom">
+						<view class="item_bottom_title">
+							<text class="item_bottom_title_text line_hide_2">{{item.content_raw}}</text>
+						</view>
+					</view>
+				</view>
+			</view>
+
+		</scroller>
+
+		<!-- 返回箭头 -->
+		<view class="back_img_box" hover-class="hover" @click="back()">
+			<image class="back_img" src="" mode="" ></image>
+		</view>
+
+		<uniPopup ref="popup_comment" type="bottom">
+			<view class="popup_comment">
+				<view class="popup_comment_title">
+					<text class="popup_comment_title_text">{{curr_video.comment_num}}条评论</text>
+					<view class="popup_comment_title_right" hover-class="hover_gary" @click="hideComment()">
+						<image class="popup_comment_title_right_img" src="" mode=""></image>
+					</view>
+				</view>
+				<scroll-view  scroll-y="true" class="popup_comment_scroll_view" :lower-threshold="100" @scrolltolower="commentLoadMore()">
+
+					<view class="comment_content">评论去内容，根据自己的需求来写</view>
+
+				</scroll-view>
+
+				<view class="popup_comment_input" :style="{bottom: keyboardH+'px'}">
+					<input class="popup_comment_input_1" :adjust-position="false" type="text" v-model="input_content"
+						value="" :placeholder="placeholder" confirm-type="send"
+						@confirm="replySend()"
+					/>
+				</view>
+			</view>
+
+		</uniPopup>
+
+
+	</view>
+</template>
+
+<script>
+	// import http from '@/utils/js/http.js';
+	// #ifdef APP-PLUS
+	const dom = weex.requireModule('dom');
+	// #endif
+	import jxSliderVideo from '@/components/jx-sliderVideo.nvue';
+	import uniPopup from '@/uni_modules/uni-popup/components/uni-popup/uni-popup.vue';
+	import dataVideo from "../video/dataList";
+
+	export default {
+		components: {
+			jxSliderVideo,
+			uniPopup
+		},
+		data() {
+			return {
+				page: 1, //页码
+				size: 10,//每页尺寸
+				wHeight: 0,//屏幕高度  单位px
+				wWidth: 0, //屏幕宽度  单位px
+				boxStyle: {
+					width: 0,
+					height: 0
+				},
+				videoStyle: {
+					width: 0,
+					height: 0
+				},
+				curr_video_index: 0,//当前显示的视频在列表中的索引值
+				curr_video: {}, //当前视频对象
+				dataList: [],
+				input_content: "",//输入的评论内容
+				placeholder: "说点啥吗",
+				db_click: false,//防止多次点击
+				keyboardH: 0,//键盘高度
+			}
+		},
+		onLoad (options) {
+
+			this.wHeight = uni.getSystemInfoSync().windowHeight;//获取手机屏幕高度
+			this.wWidth = uni.getSystemInfoSync().windowWidth;//获取手机屏幕宽度
+
+			this.boxStyle.height = this.wHeight+'px';
+			this.boxStyle.width = this.wWidth+'px';
+
+			//初始化
+			this.init();
+		},
+		onReady () {
+			//监听键盘变化
+			uni.onKeyboardHeightChange(res => {
+				console.log(res.height);
+				this.keyboardH = res.height;
+			})
+		},
+		//页面隐藏
+		onHide () {
+			// this.tapVideoHover("play");
+		},
+		onShow () {
+			// if (this.dataList[this.curr_video_index]) {
+			// 	this.tapVideoHover("pause");
+			// }
+		},
+		watch:{
+			//上下滑动，监听当前显示的是第几个视频
+			curr_video_index(new_val,old_val){
+				console.log(new_val+'======'+old_val);
+				this.curr_video = this.dataList[new_val];
+				this.dataList[old_val].state = 'slider_pause';
+				this.dataList[old_val].is_poster = true;
+
+				setTimeout(() => {
+					this.tapVideoHover("pause");
+				},100)
+
+			},
+
+		},
+		methods: {
+			//初始化
+			async init () {
+
+				//预加载  在项目开发中，建议把preLoadVideo封装成promise 拿到后端数据后，在去执行后面的代码，才不会报错
+				await this.preLoadVideo();
+
+				//拿到视频数据后，才往下执行
+				console.log("await 预加载");
+				this.curr_video_index = 0;
+				this.curr_video = this.dataList[0];//第一个视频就是当前视频
+
+				let timeId = setTimeout(() => {
+					this.tapVideoHover("pause");
+					clearTimeout(timeId);
+				},100)
+
+			},
+
+			//预加载视频，在项目中这个是调用后端api接口，拿到数据，实际开发中建议 封装promise
+			preLoadVideo() {
+				return new Promise((resolve,reject) => {
+					//模拟调用后端接口
+					setTimeout(() => {
+						this.dataList.push(...dataVideo.lists) ;
+						resolve();
+					},500)
+
+				});
+
+
+			},
+			//动态加载更多
+			loadMore () {
+				this.page++;
+				let timeId = setTimeout(() => {
+					clearTimeout(timeId);
+					this.preLoadVideo();
+				},100)
+			},
+			//视频滚动
+			videoScroll(event) {
+				let scrollTop = Math.abs(event.contentOffset.y);//取向上滚出去的距离
+				console.log(scrollTop);
+
+				if (scrollTop == 0) {
+					//第一个视频
+					this.curr_video_index = 0;
+					console.log("当前视频的索引值==="+this.curr_video_index);
+					// this.curr_video = this.dataList[0];
+				} else {
+
+					let k = Math.round(scrollTop / this.wHeight);//当前屏幕显示的是第几个视频。视频索引
+					this.curr_video_index = k;
+					console.log("当前视频的索引值==="+k);
+					// this.curr_video = this.dataList[k];
+				}
+
+			},
+			//点击播放&&暂停  state==触发之前视频状态
+			tapVideoHover(state){
+				console.log('state====',state);
+
+				if (state=='play' || state=='slider_play') {
+					//视频正在播放，点击了，所以要暂停视频
+					this.dataList[this.curr_video_index].is_poster = false;
+					this.dataList[this.curr_video_index].state = 'pause';
+				} else {
+					//视频现在暂停，点击了，所以要播放
+					this.dataList[this.curr_video_index].is_poster = false;
+					this.dataList[this.curr_video_index].state = "play";
+				}
+			},
+			//返回
+			back () {
+				uni.navigateBack()
+			},
+			//点击 评论图标，打开评论列表
+			openComment () {
+				this.$refs.popup_comment.open();
+			},
+			//收起 评论列表
+			hideComment () {
+				uni.hideKeyboard();
+				this.$refs.popup_comment.close();
+			},
+			//触发评论或者回复的发送按钮(键盘右下角)
+			replySend () {
+				uni.showToast({
+					title: "评论成功"
+				});
+				this.input_content = "";
+				uni.hideKeyboard();
+			},
+			//点赞
+			zan (item) {
+				item.is_thumb = item.is_thumb == 0 ? 1: 0;
+				if (item.is_thumb) {
+					item.thumb_num++;
+				} else {
+					item.thumb_num--;
+				}
+			},
+
+			//回复评论 触发
+			replyComment ({comment_id,name}) {
+				this.reply_comment_id = comment_id;
+				this.placeholder = "回复@"+name;
+				this.comment_type = 2;
+			},
+			//隐藏键盘 点击scroll-view区域(除了评论文字)都会触发这个函数
+			hideKeyboard () {
+				uni.hideKeyboard();
+				this.placeholder = "我有话说";
+				this.comment_type = 1;
+			},
+
+		}
+	}
+</script>
+
+<style scoped>
+.sliderVideo {}
+/* 超出一行隐藏 */
+.line_hide_1 {
+	lines: 1;
+}
+.line_hide_2 {
+	lines: 2;
+}
+.item {}
+/* 返回键头 */
+.back_img_box {
+	width: 80upx;
+	height: 80upx;
+	justify-content: center;
+	align-items: center;
+	position: fixed;
+	top: 70upx;
+	left: 16upx;
+	z-index: 90;
+}
+.back_img {
+	width: 22upx;
+	height: 38upx;
+}
+.hover {
+	background-color: rgba(255,255,255,0.2);
+}
+.hover_gary {
+	background-color: #F5F5F5;
+}
+/* 封面图 */
+.poster_box {
+	position: absolute;
+	z-index: -1;
+	top: 0;
+	left: 0;
+}
+.poster_box_img {}
+/* 视频播放/暂停 图标 */
+.videoHover{
+	position: absolute;
+	z-index: -1;
+	top: 0;
+	left: 0;
+	flex: 1;
+	background-color: rgba(0,0,0,0);
+	justify-content: center;
+	align-items: center;
+}
+.playState {
+	width:  154upx;
+	height: 184upx;
+}
+/* 右边信息 */
+.item_right {
+	width: 128upx;
+	position: absolute;
+	right: 0;
+	bottom: 400upx;
+	flex-direction: column;
+}
+.item_right_box {
+	width: 128upx;
+	height: 128upx;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+}
+.item_avatar_img {
+	width: 84upx;
+	height: 84upx;
+	border-radius: 50%;
+}
+.item_zan_img {
+	width: 42upx;
+	height: 44upx;
+}
+.item_zan_text {
+	color: #FFF;
+	font-size: 28upx;
+	margin-top: 6upx;
+}
+.item_comment_img {
+	width: 54upx;
+	height: 54upx;
+}
+.item_comment_text {
+	color: #FFF;
+	font-size: 28upx;
+	margin-top: 6upx;
+}
+/* 底部 */
+.item_bottom {
+	/* z-index: 85; */
+
+	position: absolute;
+	bottom: 20px;
+	/* padding: 15upx; */
+	/* flex-direction: column; */
+}
+.item_bottom_title {
+	/* position: relative; */
+	/* flex: 1; */
+	padding: 16rpx;
+	width: 750rpx;
+	/* height: 44upx; */
+	/* overflow: hidden; */
+	font-size: 30upx;
+	color: #FFFFFF;
+}
+.item_bottom_title_text {
+	/* position: absolute; */
+	/* top: 0; */
+	/* left: -50upx; */
+	font-size: 30upx;
+	color: #FFFFFF;
+	line-height: 46rpx;
+	text-overflow: ellipsis;
+
+}
+.swiper_box {
+	width: 600upx;
+	height: 150upx;
+}
+.swiper {
+	width: 600upx;
+	height: 150upx;
+}
+.swiper_item {
+	/* padding: 20upx 0; */
+	/* height: 70upx!important; */
+	/* border: #000000 1px solid; */
+}
+.swiper_item_box {
+	width: 600upx;
+	flex-direction: row;
+	align-items: center;
+	padding: 8upx 0;
+}
+.swiper_item_avatar {
+	width: 58upx;
+	height: 58upx;
+	border-radius: 50%;
+}
+.swiper_item_con {
+	width: 530upx;
+	color: #FFF;
+	font-size: 28upx;
+	lines: 1;
+	margin-left: 14upx;
+}
+.item_bottom_input {
+	border-top-width: 1upx;
+	border-top-color: #666666;
+	border-top-style: solid;
+	padding: 16upx 40upx;
+}
+.item_bottom_input_text {
+	color: #666666;
+	font-size: 30upx;
+}
+.item_bottom_publish {
+	width: 95upx;
+	height: 100upx;
+	position: absolute;
+	bottom: 100upx;
+	right: 20upx;
+}
+.item_bottom_publish_img {
+	width: 95upx;
+	height: 100upx;
+}
+/* 底部上拉出评论 */
+.popup_comment {
+	width: 750upx;
+	height: 1000upx;
+	background-color: #FFF;
+}
+.popup_comment_title {
+	height: 88upx;
+	align-items: center;
+	justify-content: center;
+	border-bottom-width: 1upx;
+	border-bottom-color: #EBEBEB;
+	border-bottom-style: solid;
+	position: relative;
+}
+.popup_comment_title_right {
+	width: 88rpx;
+	height: 88rpx;
+	position: absolute;
+	top: 0;
+	right: 0;
+	justify-content: center;
+	align-items: center;
+}
+.popup_comment_title_right_img {
+	width: 54rpx;
+	height: 54rpx;
+}
+
+.popup_comment_title_text {
+	color: #666666;
+	font-size: 30upx;
+
+}
+.popup_comment_scroll_view {
+	width: 750upx;
+	height: 840upx;
+	padding: 0 30upx;
+	/* #ifndef APP-PLUS */
+	box-sizing: border-box;
+	/* #endif */
+
+}
+.comment_content {
+	padding: 30rpx 0;
+}
+.comment_scroll_view_item {
+
+}
+.popup_comment_end {
+	padding: 20upx;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+}
+.popup_comment_end_text {
+	font-size: 24upx;
+	color: #666;
+}
+.popup_comment_load {
+	padding: 20upx;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+}
+.popup_comment_load_text {
+	font-size: 24upx;
+	color: #666;
+}
+.popup_comment_input {
+	width: 750upx;
+	height: 90upx;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	background-color: #F7F7F7;
+	position: absolute;
+	/* left: 0; */
+	/* bottom: 0; */
+}
+.popup_comment_input_1 {
+	width: 706upx;
+	height: 64upx;
+	border-width: 1upx;
+	border-color: #B3B3B3;
+	border-style: solid;
+	border-radius: 12upx;
+	color: #666666;
+	font-size: 30upx;
+	padding-left: 20upx;
+}
+</style>

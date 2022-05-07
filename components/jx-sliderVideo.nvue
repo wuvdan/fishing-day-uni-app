@@ -1,0 +1,105 @@
+<template>
+	<view class="root">
+		<video
+			ref="myVideos"
+			id="myVideo"
+			:loop="true"
+			:src="src"
+			:enable-progress-gesture="false"
+			:page-gesture="false"
+			:controls="false"
+			:show-fullscreen-btn="false"
+			:show-center-play-btn="false"
+			:style="boxStyle"
+			:show-play-btn="false"
+			@ended="playEnd"
+		></video>
+		
+	</view>
+</template>
+
+<script>
+	export default {
+		watch: {
+			state(newValue, oldValue) {
+				console.log('nnn-play')
+				let createVideoContext = uni.createVideoContext('myVideo',this);
+				// createVideoContext.play();
+				console.log(createVideoContext);
+				console.log(newValue);
+				switch (newValue){
+					//视频播放
+					case 'play':
+						// createVideoContext.seek(0);
+						createVideoContext.play();
+						break;
+					//视频暂停
+					case 'pause':
+						createVideoContext.pause();
+						break;
+					//上下切换停止视频
+					case 'slider_pause':
+						createVideoContext.stop();//视频停止,从0开始
+						break;
+					case 'slider_play':
+						//this.showMe = false;
+						//this.unshowMe = true;
+						// createVideoContext.seek(2);//跳转视频 0s 位置，
+						createVideoContext.play();
+						break;
+					default:
+						break;
+				}
+				
+			}
+		},
+		props: {
+			state: {
+				type: String,
+				default: ""
+			},
+			src:{
+				type: String,
+				default: ""
+			},
+			boxStyle: {
+				type: Object,
+				default: function () {
+					return {}
+				}
+			}
+		},
+		created() {
+			console.log("created=====");
+		},
+		onReady() {
+			console.log("onReady");
+		},
+		mounted() {
+			
+		},
+		data(){
+			return {
+				videoContext: "",
+			}
+		},
+		methods: {
+			//视频播放结束触发
+			playEnd() {
+				
+			},
+		}
+	}
+</script>
+
+<style>
+.root{
+	background-color: #000000;
+	position: relative;
+}
+.videoImg{
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+</style>
