@@ -4,7 +4,7 @@
 		<u-sticky bgColor="#fff">
 			<u-tabs
 				:activeStyle="{
-					color: '#303133',
+					color: '#007AFF',
 					fontWeight: 'bold',
 					transform: 'scale(1.2)'
 				}"
@@ -19,7 +19,7 @@
 				style="height: 80rpx"
 			></u-tabs>
 		</u-sticky>
-		<swiper style="height: 300px;" :autoplay="false" :current="menuCurrentIndex" @change="changePagesIndexAction">
+		<swiper style="height: 500px;" :autoplay="false" :current="menuCurrentIndex" @change="changePagesIndexAction">
 			<swiper-item>
 				<u-list style="height: 100%;">
 					<u-list-item v-for="(item, index) in postModelArray" :key="index">
@@ -45,22 +45,37 @@
 				<u-list style="height: 100%;">
 					<u-list-item v-for="(item, index) in postModelArray" :key="index">
 						<post-item :model="item"></post-item>
+					</u-list-item>
+				</u-list>
+			</swiper-item>
+			<swiper-item>
+				<u-list style="height: 100%;">
+					<u-list-item v-for="(item, index) in postModelArray" :key="index">
+						<post-item :model="item"></post-item>
+					</u-list-item>
+				</u-list>
+			</swiper-item>
+			<swiper-item>
+				<u-list style="height: 100%;">
+					<u-list-item v-for="(item, index) in postModelArray" :key="index">
+						<fish-pond-item></fish-pond-item>
 					</u-list-item>
 				</u-list>
 			</swiper-item>
 		</swiper>
 		
-		<button style="position: absolute; width: 100rpx; height: 100rpx; border-radius: 50rpx; background-color: #007AFF;" @click="gotoPostPage"></button>
+		<button style="position: absolute; bottom: 100rpx; right: 30rpx; width: 80rpx; height: 80rpx; border-radius: 40rpx; background-color: #007AFF;" @click="gotoPostPage"></button>
 	</div>
 </template>
 
 <script>
-import postItem from '../../components/post-item/index.vue'
+import postItem from '../../components/post-item/index.vue';
+import fishPondItem from '../../components/fish-pond-list-item/index.vue';
 import {dataJSON} from './test-post.js';
-
 export default {
 	components: {
-		postItem
+		postItem,
+		fishPondItem
 	},
 	data() {
 		return {
@@ -93,6 +108,9 @@ export default {
 				},
 				{
 					name: '求助'
+				},
+				{
+					name: '鱼塘'
 				}
 			],
 			menuCurrentIndex: 1,
@@ -100,7 +118,7 @@ export default {
 		};		
 	},
 	onLoad() {
-			this.postModelArray = dataJSON
+		this.postModelArray = dataJSON
 	},
 	methods: {
 		changeMenuIndexAction(event) {
@@ -108,7 +126,6 @@ export default {
 		},
 
 		changePagesIndexAction(event) {
-			console.log(event);
 			this.menuCurrentIndex = event.detail.current;
 		},
 		

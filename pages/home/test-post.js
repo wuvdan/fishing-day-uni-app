@@ -5,6 +5,15 @@ export const dataJSON = [
 		"contentData": {
 			"imageList": [],
 			"content": "这是一个文本内容为：每一个文本都是其它文本的镜子，每一文本都是对其它文本的吸收与转化。概而言之，互文性概念主要有两个方面的基本含义：一是“一个确定的文本与它所引用、改写、吸收、扩展、或在总体上加以改造的其他文本之间的关系”；二是“任何文本都是一种互文，在一个文本之中，不同程度地以各种多少能辨认的形式存在着其他的文"
+		},
+		"footerData": {
+			"comment": "10评论",
+			"time": "10分钟前",
+			"address": {
+				"name": "合肥市西七里塘",
+				"latitude": "31.222333",
+				"longitude": "123.002"
+			} 
 		}
 	},
 	{
@@ -13,13 +22,22 @@ export const dataJSON = [
 		"contentData": {
 			"imageList": [
 				{
-					"icon": "https://pics5.baidu.com/feed/f703738da9773912afa0f919d95b041d377ae28f.jpeg?token=5dbd6b2f4abe26b0fa5cf09b0dd486e3&s=63B0CC6D8413F7DE0B8D803703007053",
+					"icon": "https://img0.baidu.com/it/u=3084194511,1039659696&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500",
 					"isPic": true,
-					"height": "300",
-					"width": "200"
+					"height": "350",
+					"width": "400"
 				}
 			],
 			"content": ""
+		},
+		"footerData": {
+			"comment": "23评论",
+			"time": "18分钟前",
+			"address": {
+				"name": "合肥市西七里塘",
+				"latitude": "31.222333",
+				"longitude": "123.002"
+			} 
 		}
 	},
 	{
@@ -35,6 +53,15 @@ export const dataJSON = [
 				}
 			],
 			"content": "这是一个文本内容为：每一个文本都是其它文本的镜子，每一文本都是对其它文本的吸收与转化。概而言之，互文性概念主要有两个方面的基本含义：一是“一个确定的文本与它所引用、改写、吸收、扩展、或在总体上加以改造的其他文本之间的关系”；二是“任何文本都是一种互文，在一个文本之中，不同程度地以各种多少能辨认的形式存在着其他的文"
+		},
+		"footerData": {
+			"comment": "33评论",
+			"time": "7分钟前",
+			"address": {
+				"name": "合肥市北城",
+				"latitude": "31.222333",
+				"longitude": "123.002"
+			} 
 		}
 	},
 	{
@@ -43,13 +70,13 @@ export const dataJSON = [
 		"contentData": {
 			"imageList": [
 				{
-					"icon": "https://pics2.baidu.com/feed/b999a9014c086e06a6f6cafb46f01bf20bd1cb27.jpeg?token=8cd4036878d3d9ec7a3e0a213274b0d7",
+					"icon": "https://img1.baidu.com/it/u=1629448424,4193295491&fm=253&fmt=auto&app=138&f=JPEG?w=667&h=500",
 					"isPic": true,
 					"height": "300",
 					"width": "200"
 				},
 				{
-					"icon": "https://pics1.baidu.com/feed/dbb44aed2e738bd452f35d35258655d3267ff9fc.jpeg?token=9dd479e9089c76b90c817f507d12c457&s=E5927B97FCF7FA8CF31919E00300E0B1",
+					"icon": "https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fsrc.aidiao.com%2Fuploads%2F201505%2F1432089548QlCgmqop.jpg&refer=http%3A%2F%2Fsrc.aidiao.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=auto?sec=1654672698&t=01b7521e12ae0114ae8779d768b0792d",
 					"isPic": true,
 					"height": "300",
 					"width": "200"
@@ -68,6 +95,15 @@ export const dataJSON = [
 				}
 			],
 			"content": "这是一个文本内容为：每一个文本都是其它文本的镜子，每一文本都是对其它文本的吸收与转化。概而言之，互文性概念主要有两个方面的基本含义：一是“一个确定的文本与它所引用、改写、吸收、扩展、或在总体上加以改造的其他文本之间的关系”；二是“任何文本都是一种互文，在一个文本之中，不同程度地以各种多少能辨认的形式存在着其他的文"
+		},
+		"footerData": {
+			"comment": "123评论",
+			"time": "1天前",
+			"address": {
+				"name": "合肥市北城",
+				"latitude": "31.222333",
+				"longitude": "123.002"
+			} 
 		}
 	}
 ]
